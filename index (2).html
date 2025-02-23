@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Registration</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    async function registerProduct() {
+      // Se usan los IDs correctos de los inputs
+      const idProducto = document.getElementById('idProd').value;
+      const Nombre = document.getElementById('nombre').value;
+      const Precio = document.getElementById('precio').value;
+      const Existencia = document.getElementById('existencia').value;
+
+      if (!idProducto || !Nombre || !Precio || !Existencia) {
+        alert("Todos los campos son obligatorios.");
+        return;
+      }
+
+      const response = await fetch('register.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idProducto, Nombre, Precio, Existencia })
+      });
+
+      const result = await response.text();
+      alert(result);
+      loadProducts();
+    }
+
+    async function loadProducts() {
+      const response = await fetch('load_products.php');
+      const products = await response.json();
+      const tableBody = document.getElementById('productTableBody');
+      tableBody.innerHTML = '';
+
+      products.forEach(product => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="border border-gray-300 px-4 py-2 text-center">${product.idProducto}</td>
+          <td class="border border-gray-300 px-4 py-2 text-center">${product.Nombre}</td>
+          <td class="border border-gray-300 px-4 py-2 text-center">$${product.Precio}</td>
+          <td class="border border-gray-300 px-4 py-2 text-center">${product.Existencia}</td>
+          <td class="border border-gray-300 px-4 py-2 text-center text-red-500 cursor-pointer" onclick="deleteProduct('${product.idProducto}')">Eliminar</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    }
+
+    async function deleteProduct(id) {
+      const response = await fetch(`delete.php?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      const result = await response.text();
+      alert(result);
+      loadProducts();
+    }
+
+    window.onload = loadProducts;
+  </script>
+</head>
+<body class="flex justify-center items-center min-h-screen bg-gray-100">
+  <div class="bg-white p-6 rounded-lg shadow-lg">
+    <div class="bg-gray-100 p-4 rounded-lg mb-6">
+      <div class="mb-4">
+        <label for="idProd" class="block text-gray-700">ID Producto:</label>
+        <input type="text" id="idProd" class="w-full border border-gray-300 p-2 rounded">
+      </div>
+      <div class="mb-4">
+        <label for="nombre" class="block text-gray-700">Nombre:</label>
+        <input type="text" id="nombre" class="w-full border border-gray-300 p-2 rounded">
+      </div>
+      <div class="mb-4">
+        <label for="precio" class="block text-gray-700">Precio:</label>
+        <input type="text" id="precio" class="w-full border border-gray-300 p-2 rounded">
+      </div>
+      <div class="mb-4">
+        <label for="existencia" class="block text-gray-700">Existencia:</label>
+        <input type="text" id="existencia" class="w-full border border-gray-300 p-2 rounded">
+      </div>
+      <button class="bg-blue-500 text-white px-4 py-2 rounded" onclick="registerProduct()">Registrar</button>
+    </div>
+    <table class="w-full border-collapse">
+      <thead>
+        <tr class="bg-blue-100">
+          <th class="border border-gray-300 px-4 py-2">ID</th>
+          <th class="border border-gray-300 px-4 py-2">Nombre</th>
+          <th class="border border-gray-300 px-4 py-2">Precio</th>
+          <th class="border border-gray-300 px-4 py-2">Existencia</th>
+          <th class="border border-gray-300 px-4 py-2">Acción</th>
+        </tr>
+      </thead>
+      <tbody id="productTableBody"></tbody>
+    </table>
+  </div>
+</body>
+</html>
